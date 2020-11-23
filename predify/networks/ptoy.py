@@ -44,37 +44,70 @@ class ToyNet3(nn.Module):
         x = torch.flatten(x, 1)
         return self.classifier(x)
 
-class PToyNet3(PNetSameHP):
-    # self, backbone, numbre_of_pcoders, build_graph=False, random_init=True, ff_multiplier: float=0.33, fb_multiplier: float=0.33, er_multiplier: float=0.01
-    def __init__(self, toynet, number_of_pcoders=3, build_graph=False, random_init=True, ff_multiplier: float=0.33, fb_multiplier: float=0.33, er_multiplier: float=0.01):
-        super().__init__(toynet, number_of_pcoders, build_graph, random_init, ff_multiplier, fb_multiplier, er_multiplier)
+class PToyNet3SameHP(PNetSameHP):
+    def __init__(self, toynet, build_graph=False, random_init=True, ff_multiplier: float=0.33, fb_multiplier: float=0.33, er_multiplier: float=0.01):
+        super().__init__(toynet, 3, build_graph, random_init, ff_multiplier, fb_multiplier, er_multiplier)
 
         pmodule = Sequential(
-            ConvTranspose2d(in_channels=self.toynet.features[0].out_channels, out_channels=self.toynet.features[0].in_channels, kernel_size=5, stride=1, padding=2))
+            ConvTranspose2d(in_channels=self.backbone.features[0].out_channels, out_channels=self.backbone.features[0].in_channels, kernel_size=5, stride=1, padding=2))
         self.pcoder1 = PCoder(pmodule, True, self.random_init)
 
         pmodule = Sequential(
-            Upsample(scale_factor = self.toynet.poolingParameter, mode='bilinear'),
-            ConvTranspose2d(in_channels=self.toynet.features[3].out_channels, out_channels=self.toynet.features[3].in_channels, kernel_size=5, stride=1, padding=2))
+            Upsample(scale_factor = self.backbone.poolingParameter, mode='bilinear'),
+            ConvTranspose2d(in_channels=self.backbone.features[3].out_channels, out_channels=self.backbone.features[3].in_channels, kernel_size=5, stride=1, padding=2))
         self.pcoder2 = PCoder(pmodule, True, self.random_init)
         
         pmodule = Sequential(
-            Upsample(scale_factor = self.toynet.poolingParameter, mode='bilinear'),
-            ConvTranspose2d(in_channels=self.toynet.features[6].out_channels, out_channels=self.toynet.features[6].in_channels, kernel_size=5, stride=1, padding=2))
+            Upsample(scale_factor = self.backbone.poolingParameter, mode='bilinear'),
+            ConvTranspose2d(in_channels=self.backbone.features[6].out_channels, out_channels=self.backbone.features[6].in_channels, kernel_size=5, stride=1, padding=2))
         self.pcoder3 = PCoder(pmodule, False, self.random_init)
 
         self.handles = []
         def fw_hook1(m, m_in, m_out):
             e = self.pcoder1(ff=m_out, fb=self.pcoder2.prd, target=self.input_mem, build_graph=self.build_graph, ffm=self.ffm, fbm=self.fbm, erm=self.erm)
             return e[0]
-        self.handles.append(self.toynet.features[0].register_forward_hook(fw_hook1))
+        self.handles.append(self.backbone.features[0].register_forward_hook(fw_hook1))
 
         def fw_hook2(m, m_in, m_out):
             e = self.pcoder2(ff=m_out, fb=self.pcoder3.prd, target=self.pcoder1.rep, build_graph=self.build_graph, ffm=self.ffm, fbm=self.fbm, erm=self.erm)
             return e[0]
-        self.handles.append(self.toynet.features[3].register_forward_hook(fw_hook2))
+        self.handles.append(self.backbone.features[3].register_forward_hook(fw_hook2))
 
         def fw_hook3(m, m_in, m_out):
             e = self.pcoder3(ff=m_out, fb=None, target=self.pcoder2.rep, build_graph=self.build_graph, ffm=self.ffm, fbm=self.fbm, erm=self.erm)
             return e[0]
-        self.handles.append(self.toynet.features[6].register_forward_hook(fw_hook3))
+        self.handles.append(self.backbone.features[6].register_forward_hook(fw_hook3))
+
+class PToyNet3SeparateHP(PNetSeparateHP):
+    def __init__(self, toynet, build_graph=False, random_init=True, ff_multiplier: float=0.33, fb_multiplier: float=0.33, er_multiplier: float=0.01):
+        super().__init__(toynet, 3, build_graph, random_init, ff_multiplier, fb_multiplier, er_multiplier)
+
+        pmodule = Sequential(
+            ConvTranspose2d(in_channels=self.backbone.features[0].out_channels, out_channels=self.backbone.features[0].in_channels, kernel_size=5, stride=1, padding=2))
+        self.pcoder1 = PCoder(pmodule, True, self.random_init)
+
+        pmodule = Sequential(
+            Upsample(scale_factor = self.backbone.poolingParameter, mode='bilinear'),
+            ConvTranspose2d(in_channels=self.backbone.features[3].out_channels, out_channels=self.backbone.features[3].in_channels, kernel_size=5, stride=1, padding=2))
+        self.pcoder2 = PCoder(pmodule, True, self.random_init)
+        
+        pmodule = Sequential(
+            Upsample(scale_factor = self.backbone.poolingParameter, mode='bilinear'),
+            ConvTranspose2d(in_channels=self.backbone.features[6].out_channels, out_channels=self.backbone.features[6].in_channels, kernel_size=5, stride=1, padding=2))
+        self.pcoder3 = PCoder(pmodule, False, self.random_init)
+
+        self.handles = []
+        def fw_hook1(m, m_in, m_out):
+            e = self.pcoder1(ff=m_out, fb=self.pcoder2.prd, target=self.input_mem, build_graph=self.build_graph, ffm=self.ffm1, fbm=self.fbm1, erm=self.erm1)
+            return e[0]
+        self.handles.append(self.backbone.features[0].register_forward_hook(fw_hook1))
+
+        def fw_hook2(m, m_in, m_out):
+            e = self.pcoder2(ff=m_out, fb=self.pcoder3.prd, target=self.pcoder1.rep, build_graph=self.build_graph, ffm=self.ffm2, fbm=self.fbm2, erm=self.erm2)
+            return e[0]
+        self.handles.append(self.backbone.features[3].register_forward_hook(fw_hook2))
+
+        def fw_hook3(m, m_in, m_out):
+            e = self.pcoder3(ff=m_out, fb=None, target=self.pcoder2.rep, build_graph=self.build_graph, ffm=self.ffm3, fbm=self.fbm3, erm=self.erm3)
+            return e[0]
+        self.handles.append(self.backbone.features[6].register_forward_hook(fw_hook3))

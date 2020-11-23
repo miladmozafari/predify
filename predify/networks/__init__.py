@@ -7,6 +7,7 @@ from   torch.nn import Sequential, Conv2d, MaxPool2d, BatchNorm2d, ReLU, Flatten
 from   datetime import datetime
 import torch.optim as optim
 import torch.nn as nn
+import copy
 
 import os
 import sys
@@ -49,7 +50,7 @@ class PNetSameHP(nn.Module):
 
         self.input_mem = None
 
-        self.backbone = backbone
+        self.backbone = copy.deepcopy(backbone)
         self.backbone.eval()
 
         self.pcoders = None   # pcoders will be appended here or should be appended here
@@ -105,7 +106,18 @@ class PNetSeparateHP(nn.Module):
     Base class for the Predictive Networks with separate hyperparameters for all layers
     """
     def __init__(self, backbone, number_of_pcoders, build_graph=False, random_init=True, ff_multiplier: float=0.33, fb_multiplier: float=0.33, er_multiplier: float=0.01):
+        """
+        each of the hyperparameters can be a single floating point value or a list of values. in case of a single value, it will be repeated for all layers.
+        """
+        if isinstance(ff_multiplier, float):
+            ff_multiplier = [ff_multiplier for i in range(number_of_pcoders)]
+        if isinstance(fb_multiplier, float):
+            fb_multiplier = [fb_multiplier for i in range(number_of_pcoders)]
+        if isinstance(er_multiplier, float):
+            er_multiplier = [er_multiplier for i in range(number_of_pcoders)]
+
         super(PNetSeparateHP, self).__init__()
+
 
         self.build_graph = build_graph
         self.random_init = random_init
@@ -116,13 +128,13 @@ class PNetSeparateHP(nn.Module):
         fbms = [None for i in range(self.number_of_pcoders)]
         erms = [None for i in range(self.number_of_pcoders)]
         for i in range(self.number_of_pcoders):
-            ffms[i] = torch.tensor(ff_multiplier, dtype=torch.float)
+            ffms[i] = torch.tensor(ff_multiplier[i], dtype=torch.float)
             self.register_buffer(f"ffm{i+1}", ffms[i])
             
-            fbms[i] = torch.tensor(fb_multiplier,dtype=torch.float)
+            fbms[i] = torch.tensor(fb_multiplier[i], dtype=torch.float)
             self.register_buffer(f"fbm{i+1}", fbms[i])
 
-            erms[i] = torch.tensor(er_multiplier, dtype=torch.float)
+            erms[i] = torch.tensor(er_multiplier[i], dtype=torch.float)
             self.register_buffer(f"erm{i+1}", erms[i])
 
         ff_parts  = [None for i in range(self.number_of_pcoders)]
@@ -132,21 +144,21 @@ class PNetSeparateHP(nn.Module):
 
         # trainable
         for i in range(self.number_of_pcoders):
-            ff_parts[i] = nn.Parameter(torch.tensor(ff_multiplier))   
+            ff_parts[i] = nn.Parameter(torch.tensor(ff_multiplier[i]))   
             self.register_parameter(f"ff_part{i+1}", ff_parts[i])
 
-            fb_parts[i] = nn.Parameter(torch.tensor(fb_multiplier))
+            fb_parts[i] = nn.Parameter(torch.tensor(fb_multiplier[i]))
             self.register_parameter(f"fb_part{i+1}", fb_parts[i])
 
-            mem_parts[i] = nn.Parameter(torch.tensor(1.0-ff_multiplier-fb_multiplier))
+            mem_parts[i] = nn.Parameter(torch.tensor(1.0-ff_multiplier[i]-fb_multiplier[i]))
             self.register_parameter(f"mem_part{i+1}", mem_parts[i])
 
-            errorms[i] = nn.Parameter(torch.tensor(er_multiplier))
+            errorms[i] = nn.Parameter(torch.tensor(er_multiplier[i]))
             self.register_parameter(f"errorm{i+1}", errorms[i])
 
         self.input_mem = None
 
-        self.backbone = backbone
+        self.backbone = copy.deepcopy(backbone)
         self.backbone.eval()
 
         self.pcoders = None   # append pcoders here
