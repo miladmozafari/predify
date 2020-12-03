@@ -48,10 +48,16 @@ class PNetSameHP(nn.Module):
         errorm = nn.Parameter(torch.tensor(er_multiplier))
         self.register_parameter(f"errorm", errorm)
 
+        self.compute_hp_parameters_from_values()
+
         self.input_mem = None
 
         self.backbone = copy.deepcopy(backbone)
         self.backbone.eval()
+
+        for m in self.backbone.modules():
+            if hasattr(m, 'inplace'):
+                m.inplace = False
 
         self.pcoders = None   # pcoders will be appended here or should be appended here
     
@@ -100,6 +106,15 @@ class PNetSameHP(nn.Module):
             abc = a+b+c
             self.ffm = a/abc
             self.fbm = b/abc
+
+    def compute_hp_parameters_from_values(self):
+        with torch.no_grad():
+            self.errorm.copy_(self.erm)
+            self.ff_part.copy_(-torch.log((1-self.ffm)/self.ffm))
+            self.fb_part.copy_(-torch.log((1-self.fbm)/self.fbm))
+            fmm = 1-self.ffm-self.fbm
+            self.mem_part.copy_(-torch.log((1-fmm)/fmm))
+
 
 class PNetSeparateHP(nn.Module):
     """
@@ -156,10 +171,16 @@ class PNetSeparateHP(nn.Module):
             errorms[i] = nn.Parameter(torch.tensor(er_multiplier[i]))
             self.register_parameter(f"errorm{i+1}", errorms[i])
 
+        self.compute_hp_parameters_from_values()
+
         self.input_mem = None
 
         self.backbone = copy.deepcopy(backbone)
         self.backbone.eval()
+
+        for m in self.backbone.modules():
+            if hasattr(m, 'inplace'):
+                m.inplace = False
 
         self.pcoders = None   # append pcoders here
     
@@ -228,3 +249,15 @@ class PNetSeparateHP(nn.Module):
                 abc = a+b+c
                 setattr(self, f'ffm{i}', a/abc)
                 setattr(self, f'fbm{i}', b/abc)
+
+    def compute_hp_parameters_from_values(self):
+        with torch.no_grad():
+            for i in range(1,self.number_of_pcoders+1):
+                erm, ffm, fbm = getattr(self,f"erm{i}"), getattr(self,f"ffm{i}"), getattr(self,f"fbm{i}")
+                fmm = 1-ffm-fbm
+                
+                errorm, ff_part, fb_part, mem_part = getattr(self,f"errorm{i}"), getattr(self,f"ff_part{i}"), getattr(self,f"fb_part{i}"), getattr(self,f"mem_part{i}")
+                errorm.copy_(erm)
+                ff_part.copy_(-torch.log((1-ffm)/ffm))
+                fb_part.copy_(-torch.log((1-fbm)/fbm))
+                mem_part.copy_(-torch.log((1-fmm)/fmm))
