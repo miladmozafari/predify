@@ -68,7 +68,7 @@ class CIFAR_C(Dataset):
     def __len__(self):
         return len(self.data)
 
-def get_training_dataloader(mean, std, cifar10=False, simple=False, batch_size=16, num_workers=2, shuffle=True, root='./data', noise_transform=None, after_norm=True):
+def get_training_dataloader(mean, std, cifar10=False, simple=False, batch_size=16, num_workers=2, shuffle=True, root='./data', noise_transform=None, after_norm=True, drop_last=False):
     """ return training dataloader
     Args:
         mean: mean of cifar100/10 training dataset
@@ -105,11 +105,11 @@ def get_training_dataloader(mean, std, cifar10=False, simple=False, batch_size=1
     else:
         cifar_training = torchvision.datasets.CIFAR100(root=root, train=True, download=True, transform=transform_train)
     cifar_training_loader = DataLoader(
-        cifar_training, shuffle=shuffle, num_workers=num_workers, batch_size=batch_size)
+        cifar_training, shuffle=shuffle, num_workers=num_workers, batch_size=batch_size, drop_last=drop_last)
 
     return cifar_training_loader
 
-def get_test_dataloader(mean, std, cifar10=False, batch_size=16, num_workers=2, shuffle=True, root='./data', noise_transform=None, sampler=None, after_norm=True):
+def get_test_dataloader(mean, std, cifar10=False, batch_size=16, num_workers=2, shuffle=True, root='./data', noise_transform=None, sampler=None, after_norm=True, drop_last=False):
     """ return training dataloader
     Args:
         mean: mean of cifar100/10 test dataset
@@ -139,11 +139,11 @@ def get_test_dataloader(mean, std, cifar10=False, batch_size=16, num_workers=2, 
     else:
         cifar_test = torchvision.datasets.CIFAR100(root=root, train=False, download=True, transform=transform_test)
     cifar_test_loader = DataLoader(
-        cifar_test, shuffle=shuffle, num_workers=num_workers, batch_size=batch_size, sampler=sampler)
+        cifar_test, shuffle=shuffle, num_workers=num_workers, batch_size=batch_size, sampler=sampler, drop_last=drop_last)
 
     return cifar_test_loader
 
-def get_cifarc_dataloader(mean=None, std=None, batch_size=16, num_workers=2, shuffle=True, root='./data', noise_type=None, noise_level=None, sampler=None):
+def get_cifarc_dataloader(mean=None, std=None, batch_size=16, num_workers=2, shuffle=True, root='./data', noise_type=None, noise_level=None, sampler=None, drop_last=False):
     """ return cifar10/100-c dataloader
     Args:
         mean: normalization mean
@@ -216,7 +216,7 @@ def get_cifarc_dataloader(mean=None, std=None, batch_size=16, num_workers=2, shu
         cifarc  = CIFAR_C(root, noise_type, noise_level, transform=transform_test)
 
     cifarc_loader = DataLoader(
-        cifarc, shuffle=shuffle, num_workers=num_workers, batch_size=batch_size, sampler=sampler)
+        cifarc, shuffle=shuffle, num_workers=num_workers, batch_size=batch_size, sampler=sampler, drop_last=drop_last)
 
     return cifarc_loader
 
