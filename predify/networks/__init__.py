@@ -15,10 +15,35 @@ import numpy as np
 from ..modules import PCoder
 
 class PNetSameHP(nn.Module):
+    r"""
+    Implements the base class for adding Predicitive Coding Dynamics to an existing network with the same (shared) hyperparameters for all PCoders.
+    Assume that there are :math:`n` PCoders. Let :math:`pc_{i}^{r}(t)` be the output representation of PCoder :math:`i` at timestep :math:`t` based on which :math:`pc_{i}^{p}(t)` will be calculated as its prediction (:math:`i \in {1,...,n}` and :math:`t \in {0,...,T}`). Also, let :math:`ff_{i}(t)` be the feedforward drive that enters the PCoder :math:`i` at timestep :math:`t`. Then, the update dynamics will be as follows. 
+    
+    * Initialization (:math:`t=0`):
+    
+    :math:`pc_{i}^{r}(0)` will be initialized by the feedforward drive (:math:`ff_{i}(0)`) or a random representation drawn from the standard normal.
+
+    * Iterations (:math:`0< t \leq T`):
+
+    .. math::
+        pc_{i}^{r}(t) = \beta(ff_{i}(t)) + \lambda(pc_{i+1}^{p}(t-1)) + (1-\beta-\lambda)(pc_{i}^{r}(t-1)) - \alpha(\frac{\partial \epsilon_{i}(t-1)}{\partial pc_{i}^{r}(t-1)}),
+
+    where, :math:`\epsilon_{i}(t-1)` is the prediction error computed between :math:`pc_{i}^{p}(t-1)` and :math:`pc_{i-1}^{r}(t-1)`.
+
+    .. note::
+        * :math:`pc_{0}^{r}(t)` = :math:`pc_{0}^{r}(0)` = Static input
+        * For the last PCoder, there will be no feedback drive, thus there will be no :math:`lambda` as well.
+
+    Args:
+        backbone (torch.nn.Module): A callable module inherited from `torch.nn.Module`.
+        numbre_of_pcoders (int): Number of PCoders
+        build_graph (boolean): Indicates whether the computation graph should be built (set it to `True` during the training phase)
+        random_init (boolean): Indicates whether the PCoders starts from a random representation (if `True`) or the given feedforward one (if `False`)
+        ff_multiplier (float, optional): Value of :math:`\beta`. Default: 0.33.
+        fb_multiplier (float, optional): Value of :math:`\lambda`. Default: 0.33.
+        er_multiplier (float, optional): Value of :math:`\alpha`. Default: 0.01.
     """
-    Base class for the Predictive Networks with same hyperparameters for all layers
-    """
-    def __init__(self, backbone, numbre_of_pcoders, build_graph=False, random_init=True, ff_multiplier: float=0.33, fb_multiplier: float=0.33, er_multiplier: float=0.01):
+    def __init__(self, backbone: nn.Module, numbre_of_pcoders: int, build_graph: bool=False, random_init: bool=True, ff_multiplier: float=0.33, fb_multiplier: float=0.33, er_multiplier: float=0.01):
         super(PNetSameHP, self).__init__()
 
         self.build_graph = build_graph
@@ -78,6 +103,9 @@ class PNetSameHP(nn.Module):
         return output
   
     def reset(self):
+        r"""
+        To be called for each new batch of images.
+        """
         self.input_mem = None
         if self.pcoders is None:
             self.pcoders = []
@@ -89,12 +117,25 @@ class PNetSameHP(nn.Module):
             pc.reset()
 
     def get_hyperparameters_values(self):
+        r"""
+        Returns the values of hyperparameters (:math:`\beta, \lambda, (1-\beta-\lambda), \alpha`).
+        """
         return (self.ffm.item(), self.fbm.item(), 1-self.ffm.item()-self.fbm.item(), self.erm.item())
 
     def get_hyperparameters(self):
+        r"""
+        Returns the hyperparameters.
+        """
         return (self.ff_part, self.fb_part, self.mem_part, self.errorm)
 
-    def update_hyperparameters(self, no_grad=False):
+    def update_hyperparameters(self, no_grad: bool=False):
+        r"""
+        Updates the values of hyperparameters. To be called after updating hyperparameters.
+
+        Args:
+            no_grad (boolean): `True` to disable making the computational graph.
+        """
+
         if no_grad:
             context = torch.no_grad()
         else:
@@ -108,6 +149,10 @@ class PNetSameHP(nn.Module):
             self.fbm = b/abc
 
     def compute_hp_parameters_from_values(self):
+        r"""
+        Compute hyperparameters based on the values of hyperparameters. To be used for the initialization of hyperparameters.
+        """
+
         with torch.no_grad():
             self.errorm.copy_(self.erm)
             self.ff_part.copy_(-torch.log((1-self.ffm)/self.ffm))
@@ -117,10 +162,39 @@ class PNetSameHP(nn.Module):
 
 
 class PNetSeparateHP(nn.Module):
+    r"""
+    Implements the base class for adding Predicitive Coding Dynamics to an existing network with separate hyperparameters for each PCoder.
+    Assume that there are :math:`n` PCoders. Let :math:`pc_{i}^{r}(t)` be the output representation of PCoder :math:`i` at timestep :math:`t` based on which :math:`pc_{i}^{p}(t)` will be calculated as its prediction (:math:`i \in {1,...,n}` and :math:`t \in {0,...,T}`). Also, let :math:`ff_{i}(t)` be the feedforward drive that enters the PCoder :math:`i` at timestep :math:`t`. Then, the update dynamics will be as follows. 
+    
+    * Initialization (:math:`t=0`):
+    
+    :math:`pc_{i}^{r}(0)` will be initialized by the feedforward drive (:math:`ff_{i}(0)`) or a random representation drawn from the standard normal.
+
+    * Iterations (:math:`0< t \leq T`):
+
+    .. math::
+        pc_{i}^{r}(t) = \beta_{i}(ff_{i}(t)) + \lambda_{i}(pc_{i+1}^{p}(t-1)) + (1-\beta_{i}-\lambda_{i})(pc_{i}^{r}(t-1)) - \alpha(\frac{\partial \epsilon_{i}(t-1)}{\partial pc_{i}^{r}(t-1)}),
+
+    where, :math:`\epsilon_{i}(t-1)` is the prediction error computed between :math:`pc_{i}^{p}(t-1)` and :math:`pc_{i-1}^{r}(t-1)`.
+
+    .. note::
+        * :math:`pc_{0}^{r}(t)` = :math:`pc_{0}^{r}(0)` = Static input
+        * For the last PCoder, there will be no feedback drive, thus there will be no :math:`lambda_{n}` as well.
+
+    Args:
+        backbone (torch.nn.Module): A callable module inherited from `torch.nn.Module`.
+        numbre_of_pcoders (int): Number of PCoders
+        build_graph (boolean): Indicates whether the computation graph should be built (set it to `True` during the training phase)
+        random_init (boolean): Indicates whether the PCoders starts from a random representation (if `True`) or the given feedforward one (if `False`)
+        ff_multiplier (sequence of float, float, optional): Values of :math:`\beta_{i}`. Default: 0.33.
+        fb_multiplier (sequence of float, float, optional): Values of :math:`\lambda_{i}`. Default: 0.33.
+        er_multiplier (sequence of float, float, optional): Values of :math:`\alpha_{i}`. Default: 0.01.
+
+    .. note::
+        If a single value is given for each of the hyperparameters, it will be duplicated for all PCoders.
     """
-    Base class for the Predictive Networks with separate hyperparameters for all layers
-    """
-    def __init__(self, backbone, number_of_pcoders, build_graph=False, random_init=True, ff_multiplier: float=0.33, fb_multiplier: float=0.33, er_multiplier: float=0.01):
+
+    def __init__(self, backbone: nn.Module, number_of_pcoders: int, build_graph: bool=False, random_init: bool=True, ff_multiplier: float=0.33, fb_multiplier: float=0.33, er_multiplier: float=0.01):
         """
         each of the hyperparameters can be a single floating point value or a list of values. in case of a single value, it will be repeated for all layers.
         """
@@ -201,6 +275,9 @@ class PNetSeparateHP(nn.Module):
         return output
   
     def reset(self):
+        r"""
+        To be called for each new batch of images.
+        """
         self.input_mem = None
         if self.pcoders is None:
             self.pcoders = []
@@ -211,6 +288,9 @@ class PNetSeparateHP(nn.Module):
             pc.reset()
 
     def get_hyperparameters_values(self):
+        r"""
+        Returns the values of hyperparameters (:math:`\beta_{i}, \lambda_{i}, (1-\beta_{i}-\lambda_{i}), \alpha_{i}` for :math:`i \in {1,...,n}`).
+        """
         vals = []
         for i in range(self.number_of_pcoders-1):
             vals.append(getattr(self, f"ffm{i+1}").item())
@@ -227,6 +307,9 @@ class PNetSeparateHP(nn.Module):
         return vals
 
     def get_hyperparameters(self):
+        r"""
+        Returns the hyperparameters.
+        """
         pars = []
         for i in range(self.number_of_pcoders):
             pars.append(getattr(self, f"ff_part{i+1}"))
@@ -236,6 +319,13 @@ class PNetSeparateHP(nn.Module):
         return pars
 
     def update_hyperparameters(self, no_grad=False):
+        r"""
+        Updates the values of hyperparameters. To be called after updating hyperparameters.
+
+        Args:
+            no_grad (boolean): `True` to disable making the computational graph.
+        """
+
         if no_grad:
             context = torch.no_grad()
         else:
@@ -251,6 +341,9 @@ class PNetSeparateHP(nn.Module):
                 setattr(self, f'fbm{i}', b/abc)
 
     def compute_hp_parameters_from_values(self):
+        r"""
+        Compute hyperparameters based on the values of hyperparameters. To be used for the initialization of hyperparameters.
+        """
         with torch.no_grad():
             for i in range(1,self.number_of_pcoders+1):
                 erm, ffm, fbm = getattr(self,f"erm{i}"), getattr(self,f"ffm{i}"), getattr(self,f"fbm{i}")
