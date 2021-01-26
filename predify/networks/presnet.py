@@ -140,6 +140,66 @@ class PResNet18V3SameHP(PNetSameHP):
             return e[0]
         self.backbone.layer4[1].conv2.register_forward_hook(fw_hook5)
 
+
+class PResNet18V2SeparateHP(PNetSeparateHP):
+    """
+    large conv transpose kernels
+    """
+    def __init__(self, resnet, build_graph=False, random_init=True, ff_multiplier: float=0.33, fb_multiplier: float=0.33, er_multiplier: float=0.01):
+        super().__init__(resnet, 5, build_graph, random_init, ff_multiplier, fb_multiplier, er_multiplier)
+
+        resnet_seq = flatten_resnet(resnet)
+        
+        # create the first PCoder
+        in_ch, out_ch, r, d, p = get_deep_info(resnet_seq, 13, -1)
+        pmodule = Sequential(ConvTranspose2d(in_ch, out_ch, kernel_size=r, stride=d, padding=p))
+        self.pcoder1 = PCoder(pmodule, True, self.random_init)
+
+        # create the second PCoder
+        in_ch, out_ch, r, d, p = get_deep_info(resnet_seq, 24, 13)
+        pmodule = Sequential(ConvTranspose2d(in_ch, out_ch, kernel_size=r, stride=d, padding=p, output_padding=1), ReLU(inplace=True))
+        self.pcoder2 = PCoder(pmodule, True, self.random_init)
+
+        # create the third PCoder
+        in_ch, out_ch, r, d, p = get_deep_info(resnet_seq, 35, 24)
+        pmodule = Sequential(ConvTranspose2d(in_ch, out_ch, kernel_size=r, stride=d, padding=p, output_padding=1), ReLU(inplace=True))
+        self.pcoder3 = PCoder(pmodule, True, self.random_init)
+
+        # create the fourth PCoder
+        in_ch, out_ch, r, d, p = get_deep_info(resnet_seq, 41, 35)
+        pmodule = Sequential(ConvTranspose2d(in_ch, out_ch, kernel_size=r, stride=d, padding=p, output_padding=1), ReLU(inplace=True))
+        self.pcoder4 = PCoder(pmodule, True, self.random_init)
+
+        # create the fifth PCoder
+        in_ch, out_ch, r, d, p = get_deep_info(resnet_seq, 46, 41)
+        pmodule = Sequential(ConvTranspose2d(in_ch, out_ch, kernel_size=r, stride=d, padding=p), ReLU(inplace=True))
+        self.pcoder5 = PCoder(pmodule, False, self.random_init)
+
+        def fw_hook1(m, m_in, m_out):
+            e = self.pcoder1(ff=m_out, fb=self.pcoder2.prd, target=self.input_mem, build_graph=self.build_graph, ffm=self.ffm1, fbm=self.fbm1, erm=self.erm1)
+            return e[0]
+        self.backbone.layer1.register_forward_hook(fw_hook1)
+
+        def fw_hook2(m, m_in, m_out):
+            e = self.pcoder2(ff=m_out, fb=self.pcoder3.prd, target=self.pcoder1.rep, build_graph=self.build_graph, ffm=self.ffm2, fbm=self.fbm2, erm=self.erm2)
+            return e[0]
+        self.backbone.layer2.register_forward_hook(fw_hook2)
+
+        def fw_hook3(m, m_in, m_out):
+            e = self.pcoder3(ff=m_out, fb=self.pcoder4.prd, target=self.pcoder2.rep, build_graph=self.build_graph, ffm=self.ffm3, fbm=self.fbm3, erm=self.erm3)
+            return e[0]
+        self.backbone.layer3.register_forward_hook(fw_hook3)
+
+        def fw_hook4(m, m_in, m_out):
+            e = self.pcoder4(ff=m_out, fb=self.pcoder5.prd, target=self.pcoder3.rep, build_graph=self.build_graph, ffm=self.ffm4, fbm=self.fbm4, erm=self.erm4)
+            return e[0]
+        self.backbone.layer4[0].register_forward_hook(fw_hook4)
+
+        def fw_hook5(m, m_in, m_out):
+            e = self.pcoder5(ff=m_out, fb=None, target=self.pcoder4.rep, build_graph=self.build_graph, ffm=self.ffm5, fbm=self.fbm5, erm=self.erm5)
+            return e[0]
+        self.backbone.layer4[1].register_forward_hook(fw_hook5)
+
 class PResNet18V3SeparateHP(PNetSeparateHP):
     """
     3x3 conv transpose kernels and upsample
