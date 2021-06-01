@@ -1,0 +1,5 @@
+numpy>=1.17
+torch==1.7.0
+torchvision==0.8
+tqdm>=4.50.0
+git+git://github.com/toml-lang/toml.git
