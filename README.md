@@ -1,7 +1,6 @@
 ![alt text](predify_logo.png)
-## Enables you to easily extend your deep neural network with predictive coding dynamics.
+### Enables you to easily extend your deep neural network with predictive coding dynamics.
 
-#
 # Installation
 
 To setup this package, you can install Anaconda or Miniconda
