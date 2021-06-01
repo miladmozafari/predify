@@ -1,22 +1,11 @@
 import torch
-import torchvision.models as models
-import torchvision
-import torchvision.transforms as transforms
-from   torch.utils.data import DataLoader
-from   torch.nn import Sequential, Conv2d, MaxPool2d, BatchNorm2d, ReLU, Flatten, Linear, ConvTranspose2d, Sigmoid, LayerNorm, InstanceNorm2d, Upsample
-from   datetime import datetime
-import torch.optim as optim
 import torch.nn as nn
 import copy
-
-import os
-import sys
-import numpy as np
 from ..modules import PCoder
 
 class PNetSameHP(nn.Module):
     r"""
-    Implements the base class for adding Predicitive Coding Dynamics to an existing network with the same (shared) hyperparameters for all PCoders.
+    Implements the base class for adding Predicitive Coding Dynamics to an existing network with shared hyperparameters for all PCoders.
     Assume that there are :math:`n` PCoders. Let :math:`pc_{i}^{r}(t)` be the output representation of PCoder :math:`i` at timestep :math:`t` based on which :math:`pc_{i}^{p}(t)` will be calculated as its prediction (:math:`i \in {1,...,n}` and :math:`t \in {0,...,T}`). Also, let :math:`ff_{i}(t)` be the feedforward drive that enters the PCoder :math:`i` at timestep :math:`t`. Then, the update dynamics will be as follows. 
     
     * Initialization (:math:`t=0`):
@@ -84,7 +73,7 @@ class PNetSameHP(nn.Module):
             if hasattr(m, 'inplace'):
                 m.inplace = False
 
-        self.pcoders = None   # pcoders will be appended here or should be appended here
+        self.pcoders = None   # pcoders will be (should be) appended here
     
     def forward(self, x=None):
         if x is not None:
@@ -130,7 +119,7 @@ class PNetSameHP(nn.Module):
 
     def update_hyperparameters(self, no_grad: bool=False):
         r"""
-        Updates the values of hyperparameters. To be called after updating hyperparameters.
+        Updates the values of hyperparameters based on their auxiliary parameters. To be called after updating hyperparameters.
 
         Args:
             no_grad (boolean): `True` to disable making the computational graph.
@@ -150,7 +139,7 @@ class PNetSameHP(nn.Module):
 
     def compute_hp_parameters_from_values(self):
         r"""
-        Compute hyperparameters based on the values of hyperparameters. To be used for the initialization of hyperparameters.
+        Computes auxiliary parameters based on the values of hyperparameters. To be used for the initialization of hyperparameters.
         """
 
         with torch.no_grad():
@@ -195,7 +184,7 @@ class PNetSeparateHP(nn.Module):
     """
 
     def __init__(self, backbone: nn.Module, number_of_pcoders: int, build_graph: bool=False, random_init: bool=True, ff_multiplier: float=0.33, fb_multiplier: float=0.33, er_multiplier: float=0.01):
-        """
+        r"""
         each of the hyperparameters can be a single floating point value or a list of values. in case of a single value, it will be repeated for all layers.
         """
         if isinstance(ff_multiplier, float):
@@ -320,7 +309,7 @@ class PNetSeparateHP(nn.Module):
 
     def update_hyperparameters(self, no_grad=False):
         r"""
-        Updates the values of hyperparameters. To be called after updating hyperparameters.
+        Updates the values of hyperparameters based on their auxiliary parameters. To be called after updating hyperparameters.
 
         Args:
             no_grad (boolean): `True` to disable making the computational graph.
@@ -342,7 +331,7 @@ class PNetSeparateHP(nn.Module):
 
     def compute_hp_parameters_from_values(self):
         r"""
-        Compute hyperparameters based on the values of hyperparameters. To be used for the initialization of hyperparameters.
+        Computes auxiliary parameters based on the values of hyperparameters. To be used for the initialization of hyperparameters.
         """
         with torch.no_grad():
             for i in range(1,self.number_of_pcoders+1):
@@ -354,21 +343,4 @@ class PNetSeparateHP(nn.Module):
                 ff_part.copy_(-torch.log((1-ffm)/ffm))
                 fb_part.copy_(-torch.log((1-fbm)/fbm))
                 mem_part.copy_(-torch.log((1-fmm)/fmm))
-
-
-
-class DeepPNetSeparateHP(PNetSeparateHP):
-
-
-    def __init__(self, backbone: nn.Module, number_of_pcoders: int, number_of_timesteps:int, build_graph: bool=False, random_init: bool=False, ff_multiplier: float=0.33, fb_multiplier: float=0.33, er_multiplier: float=0.01):
-        super(DeepPNetSeparateHP, self).__init__(backbone=backbone,number_of_pcoders=number_of_pcoders,build_graph=build_graph,random_init=random_init,ff_multiplier=ff_multiplier,fb_multiplier=fb_multiplier,er_multiplier=er_multiplier)
-        self.number_of_timesteps = number_of_timesteps
-
-    def forward(self,x):
-        assert x is not None
-        output = super().forward(x)
-        for _ in range(self.number_of_timesteps-1):
-            output = super().forward()
-
-        return output
 

@@ -6,6 +6,14 @@ imports = [
 "from   torch.nn import Sequential, ReLU, ConvTranspose2d",
 ]
 
+# uses PCoderN instead of PCoder
+gradient_scaling = true
+
+# uses shared hyperparameters across all PCoders
+# it overwrites the hyperparameter values per PCoder and uses the default value
+# or the values provided for the first PCoder
+shared_hyperparameters = false
+
 # input size [channels, height, width]
 input_size = [3, 224, 224]
 
