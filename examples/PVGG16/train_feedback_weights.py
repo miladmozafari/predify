@@ -35,9 +35,16 @@ class Args():
         config = toml.load(config_file)
         for k,v in config.items():
             setattr(self,k,v)
+    
+    def print_params(self):
+        for x in vars(self):
+            print ("{:<20}: {}".format(x, getattr(args, x)))
+
+
+
 
 args = Args('train_config.toml')
-
+args.print_params()
 
 
 #%%
