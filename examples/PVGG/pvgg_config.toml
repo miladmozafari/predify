@@ -1,0 +1,36 @@
+# network name
+name = "PVGG16"
+
+# imports for predictors
+imports = [
+"from   torch.nn import Sequential, ReLU, ConvTranspose2d",
+]
+
+# input size [channels, height, width]
+input_size = [3, 224, 224]
+
+# pcoders
+[[pcoders]]
+module = "features[3]"
+predictor = "ConvTranspose2d(64, 3, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2))"
+hyperparameters = {feedforward=0.2, feedback=0.05, pc=0.01}
+
+[[pcoders]]
+module = "features[8]"
+predictor = "Sequential(ConvTranspose2d(128, 64, kernel_size=(10, 10), stride=(2, 2), padding=(4, 4)), ReLU(inplace=True))"
+hyperparameters = {feedforward=0.4, feedback=0.1, pc=0.01}
+
+[[pcoders]]
+module = "features[15]"
+predictor = "Sequential(ConvTranspose2d(256, 128, kernel_size=(14, 14), stride=(2, 2), padding=(6, 6)), ReLU(inplace=True))"
+hyperparameters = {feedforward=0.4, feedback=0.1, pc=0.01}
+
+[[pcoders]]
+module = "features[22]"
+predictor = "Sequential(ConvTranspose2d(512, 256, kernel_size=(14, 14), stride=(2, 2), padding=(6, 6)), ReLU(inplace=True))"
+hyperparameters = {feedforward=0.5, feedback=0.1, pc=0.01}
+
+[[pcoders]]
+module = "features[29]"
+predictor = "Sequential(ConvTranspose2d(512, 512, kernel_size=(14, 14), stride=(2, 2), padding=(6, 6)), ReLU(inplace=True))"
+hyperparameters = {feedforward=0.6, feedback=0.0, pc=0.01}
