@@ -8,6 +8,12 @@ with open(os.path.join(os.path.dirname(__file__),"predify/VERSION")) as f:
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+def get_requirements():
+    with open("requirements.txt", "r") as f:
+        requirements = f.read().splitlines()
+    return requirements
+
+    
 setuptools.setup(
     name="predify-miladmozafari", # Replace with your own username
     version=version,
@@ -18,5 +24,6 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="", # write github url,
     packages=setuptools.find_packages(),
+    install_requires=get_requirements(),
     python_requires='>=3.6',
 )
