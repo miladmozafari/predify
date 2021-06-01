@@ -20,6 +20,11 @@ conda activate predifyproject
 cd predify
 pip install -r requirements.txt
 ```
+```
+# Alternatively, one can just run the following command
+pip install git+https://github.com/miladmozafari/predify.git
+```
+
 
 You can also set it up as a package in a development version
 
