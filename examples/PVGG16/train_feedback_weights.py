@@ -5,7 +5,7 @@
 #%%
 import torch
 import torchvision
-ddimport torchvision.models as models
+import torchvision.models as models
 import torchvision.transforms as transforms
 from torchvision.datasets import ImageNet
 
