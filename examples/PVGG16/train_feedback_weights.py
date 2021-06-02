@@ -5,7 +5,7 @@
 #%%
 import torch
 import torchvision
-ddimport torchvision.models as models
+import torchvision.models as models
 import torchvision.transforms as transforms
 from torchvision.datasets import ImageNet
 
@@ -73,7 +73,7 @@ device = torch.device('cuda:0')
 #          Net , optimizers
 ################################################
 ## Change this to change the network
-from pvgg16_separate import PVGGSeparateHP as PVGG16
+from pvgg16_separate import PVGG16SeparateHP as PVGG16
 
 
 net = torchvision.models.vgg16(pretrained=True)
@@ -85,7 +85,7 @@ NUMBER_OF_PCODERS = pnet.number_of_pcoders
 
 loss_function = nn.MSELoss()
 
-if args.OPTIM_NAME=='sgd':
+if args.OPTIM_NAME=='SGD':
     optimizer = optim.SGD([{'params':getattr(pnet,f"pcoder{x+1}").pmodule.parameters()} for x in range(NUMBER_OF_PCODERS)],
                             lr=args.LR,
                             weight_decay=args.WEIGHT_DECAY

@@ -6,7 +6,7 @@
 To setup this package, you can install Anaconda or Miniconda
 ```
 # Clone the repository
-git clone http://www.github.com/predify
+git clone https://www.github.com/predify
 
 # Create a new conda environment
 conda create -n predifyproject python==3.7
