@@ -73,7 +73,7 @@ device = torch.device('cuda:0')
 #          Net , optimizers
 ################################################
 ## Change this to change the network
-from pvgg16_separate import PVGGSeparateHP as PVGG16
+from pvgg16_separate import PVGG16SeparateHP as PVGG16
 
 
 net = torchvision.models.vgg16(pretrained=True)
