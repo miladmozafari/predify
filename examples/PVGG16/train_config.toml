@@ -3,8 +3,8 @@ TITLE = "Training Feedback Weights"
 
 
 RANDOM_SEED = 42                                                         # random seed for training
-CUDNN_DETERMINISTIC = False
-CUDNN_BENCHMARK = True
+CUDNN_DETERMINISTIC = false
+CUDNN_BENCHMARK = true
 
 GPU_TO_USE = 0
 
@@ -12,9 +12,9 @@ IMAGENET_DIR = '/home/milad/pcproject/imagenet'
 
 ###  Tensorbaord ###
 START_EPOCH = 1                                                           # epoch from which the training starts (especially for tensorboard)
-SAVE_DIR='./runs_train_feedbacks'                                         # tensorboard logdir
-TB_DIR =  'tmp'       # dir_name
-EXTRA_STR_YOU_WANT_TO_ADD_TO_TB = 'same_cosine_annealing_with_t0_3'       # things you wish to note apart from the args in this file
+SAVE_DIR='./tmp_train_feedbacks'                                         # tensorboard logdir
+TB_DIR =  'runs'       # dir_name
+EXTRA_STR_YOU_WANT_TO_ADD_TO_TB = ''                                      # things you wish to note apart from the args in this file
 
 
 
@@ -33,9 +33,9 @@ CKPT_EVERY = false                                                       # check
 
 
 ### SCHEDULER ###
-SCHEDULER = False
-SCHEDULER_STEPSIZE = False        
-SCHEDULER_GAMMA = False
+SCHEDULER = false
+SCHEDULER_STEPSIZE = false        
+SCHEDULER_GAMMA = false
 
 
 ## Optionally resume from a checkpoint
