@@ -57,14 +57,14 @@ os.environ["CUDA_VISIBLE_DEVICES"]= str(args.GPU_TO_USE)
 if args.RANDOM_SEED:
     np.random.seed(args.RANDOM_SEED)
     torch.manual_seed(args.RANDOM_SEED)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = True
+    torch.backends.cudnn.deterministic = args.CUDNN_DETERMINISTIC
+    torch.backends.cudnn.benchmark = args.CUDNN_BENCHMARK
 
 
 
-if not os.path.exists(args.TASK_NAME):
-    print (f'Creating a new dir : {args.TASK_NAME}')
-    os.mkdir(args.TASK_NAME)
+if not os.path.exists(args.SAVE_DIR):
+    print (f'Creating a new dir : {args.SAVE_DIR}')
+    os.mkdir(args.SAVE_DIR)
 
 device = torch.device('cuda:0')
 
@@ -81,12 +81,16 @@ NUMBER_OF_PCODERS = pnet.number_of_pcoders
 
 
 loss_function = nn.MSELoss()
-optimizer = optim.SGD([{'params':getattr(pnet,f"pcoder{x+1}").pmodule.parameters()} for x in range(NUMBER_OF_PCODERS)],
-                        lr=args.LR,
-                        weight_decay=args.WEIGHT_DECAY
-                    )
 
-scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer,T_0=3)
+if args.OPTIM_NAME=='sgd':
+    optimizer = optim.SGD([{'params':getattr(pnet,f"pcoder{x+1}").pmodule.parameters()} for x in range(NUMBER_OF_PCODERS)],
+                            lr=args.LR,
+                            weight_decay=args.WEIGHT_DECAY
+                        )
+
+
+if args.SCHEDULER == 'cosine_annealing':
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer,T_0=3)
 
 ################################################
 #       Dataset and train-test helpers
@@ -190,7 +194,7 @@ def test_pcoders(net, epoch, writer,test_loader,verbose=True):
 #        Load checkpoints if given...
 ################################################
 
-if args.RESUME:
+if args.RESUME_TRAINING:
 
     assert len(args.RESUME_CKPTS) == NUMBER_OF_PCODERS ; 'the number os ckpts provided is not equal to the number of pcoders'
 
@@ -212,9 +216,12 @@ else :
 
 
 # summarywriter
-sumwriter = SummaryWriter(f'{args.LOG_DIR}/{args.TASK_NAME}', filename_suffix=f'')
-optimizer_text = f"Optimizer   :{args.OPTIM_NAME}  \n lr          :{optimizer.defaults['lr']} \n batchsize   :{args.BATCHSIZE} \n weight_decay:{args.WEIGHT_DECAY} \n {args.EXTRA_STUFF_YOU_WANT_TO_ADD_TO_TB}"
-sumwriter.add_text('Parameters',optimizer_text,0)
+sumwriter = SummaryWriter(f'{args.SAVE_DIR}/{args.TB_DIR}', filename_suffix=f'')
+
+main_str = ''
+for x in vars(args):
+    main_str += f"{x:<20}: {getattr(args,x)}\n"
+sumwriter.add_text( 'Parameters',f"{main_str}\n{args.EXTRA_STR_YOU_WANT_TO_ADD_TO_TB }",0)
 
 
 ################################################
