@@ -3,13 +3,18 @@ TITLE = "Training Feedback Weights"
 
 
 RANDOM_SEED = 42                                                         # random seed for training
+CUDNN_DETERMINISTIC = false
+CUDNN_BENCHMARK = true
+
 GPU_TO_USE = 0
+
 IMAGENET_DIR = '/home/milad/pcproject/imagenet'
+
 ###  Tensorbaord ###
-START_EPOCH = 1                                                          # epoch from which the training starts (especially for tensorboard)
-LOG_DIR='./runs_train_feedbacks'                                         # tensorboard logdir
-TASK_NAME =  'tmp'       # dir_name
-EXTRA_STR_YOU_WANT_TO_ADD_TO_TB = 'same_cosine_annealing_with_t0_3'      # things you wish to note 
+START_EPOCH = 1                                                           # epoch from which the training starts (especially for tensorboard)
+SAVE_DIR='./tmp_train_feedbacks'                                         # tensorboard logdir
+TB_DIR =  'runs'       # dir_name
+EXTRA_STR_YOU_WANT_TO_ADD_TO_TB = ''                                      # things you wish to note apart from the args in this file
 
 
 
@@ -19,13 +24,21 @@ EXTRA_STR_YOU_WANT_TO_ADD_TO_TB = 'same_cosine_annealing_with_t0_3'      # thing
 BATCHSIZE = 64                                                           # batchsize for training
 NUM_WORKERS = 8                                                          # number of workers
 NUM_EPOCHS = 50                                                          # number of epochs
+
+### OPTIM ###
 OPTIM_NAME = 'SGD'                                                       # name of the optimizer to add to the tensorboard 
 LR = 0.001                                                               # learning rate
 WEIGHT_DECAY = 0.0005                                                    # weight decay
 CKPT_EVERY = false                                                       # checkpointing frequency  
 
 
+### SCHEDULER ###
+SCHEDULER = false
+SCHEDULER_STEPSIZE = false        
+SCHEDULER_GAMMA = false
+
+
 ## Optionally resume from a checkpoint
-RESUME = false                                                           # resuming training  
+RESUME_TRAINING = false                                                           # resuming training  
 # if true above, then give a list of filenames (whose length is equal to the number of pcoders) to the resume checkpoints.
 RESUME_CKPTS= false               #[f"/home/bhavin/Projects/predify/pefficient_net/pefficientnet_b0/pnet_pretrained_pc{x+1}_001.pth" for x in range(8)]
