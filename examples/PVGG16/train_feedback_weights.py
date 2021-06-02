@@ -85,7 +85,7 @@ NUMBER_OF_PCODERS = pnet.number_of_pcoders
 
 loss_function = nn.MSELoss()
 
-if args.OPTIM_NAME=='sgd':
+if args.OPTIM_NAME=='SGD':
     optimizer = optim.SGD([{'params':getattr(pnet,f"pcoder{x+1}").pmodule.parameters()} for x in range(NUMBER_OF_PCODERS)],
                             lr=args.LR,
                             weight_decay=args.WEIGHT_DECAY
