@@ -5,7 +5,7 @@
 #%%
 import torch
 import torchvision
-import torchvision.models as models
+ddimport torchvision.models as models
 import torchvision.transforms as transforms
 from torchvision.datasets import ImageNet
 
@@ -20,8 +20,7 @@ import os
 import toml
 import time
 
-#TODO : Milad
-from .... import .... as PVGG16
+
 
 
 ################################################
@@ -73,8 +72,12 @@ device = torch.device('cuda:0')
 ################################################
 #          Net , optimizers
 ################################################
+## Change this to change the network
+from pvgg16_separate import PVGGSeparateHP as PVGG16
+
+
 net = torchvision.models.vgg16(pretrained=True)
-pnet = PVGG(net,build_graph=True,random_init=False)
+pnet = PVGG16(net,build_graph=True,random_init=False)
 pnet.to(device)
 
 NUMBER_OF_PCODERS = pnet.number_of_pcoders
