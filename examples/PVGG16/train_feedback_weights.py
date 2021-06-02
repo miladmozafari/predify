@@ -1,5 +1,5 @@
 #########################
-# In this script we train p-EfficientNets on ImageNet
+# In this script we train PVGG on ImageNet
 # We use the pretrained model and only train feedback connections.
 #########################
 #%%
