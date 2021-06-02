@@ -3,12 +3,15 @@ import os
 import toml
 import warnings
 
-def imports_str(is_3d=False, p_imports=None, gscale=False, indent=""):
+def imports_str(is_3d=False, p_imports=None, same_hp=False, gscale=False, indent=""):
     if gscale:
         imports =  indent + "from predify.modules import PCoderN" + os.linesep
     else:
         imports =  indent + "from predify.modules import PCoder" + os.linesep
-    imports += indent + "from predify.networks import PNetSameHP, PNetSeparateHP" + os.linesep
+    if same_hp:
+        imports += indent + "from predify.networks import PNetSameHP" + os.linesep
+    else:
+        imports += indent + "from predify.networks import PNetSeparateHP" + os.linesep
     if p_imports is None:
         if is_3d:
             imports += indent + "from torch.nn import Sequential, ConvTranspose3d, Upsample" + os.linesep
@@ -176,7 +179,7 @@ def predify_core(net, name, layers, pmodules, hps, p_imports, input_size, gscale
     if output_address is None:
         output_address = f"{name.lower()}.py"
     with open(output_address, "w") as f:
-        f.write(imports_str(is_3d, p_imports=p_imports))
+        f.write(imports_str(is_3d, p_imports=p_imports, same_hp=same_hp, gscale=gscale))
         f.write(os.linesep)
 
         if same_hp:
