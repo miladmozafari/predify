@@ -8,7 +8,7 @@ CUDNN_BENCHMARK = true
 
 GPU_TO_USE = 0
 
-IMAGENET_DIR = '/home/milad/pcproject/imagenet'
+IMAGENET_DIR = '/path/to/imagenet/dataset/'
 
 ###  Tensorbaord ###
 START_EPOCH = 1                                                           # epoch from which the training starts (especially for tensorboard)
@@ -41,4 +41,4 @@ SCHEDULER_GAMMA = false
 ## Optionally resume from a checkpoint
 RESUME_TRAINING = false                                                           # resuming training  
 # if true above, then give a list of filenames (whose length is equal to the number of pcoders) to the resume checkpoints.
-RESUME_CKPTS= false               #[f"/home/bhavin/Projects/predify/pefficient_net/pefficientnet_b0/pnet_pretrained_pc{x+1}_001.pth" for x in range(8)]
+RESUME_CKPTS= false               
