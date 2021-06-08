@@ -1,5 +1,6 @@
 ![alt text](predify_logo.png)
 ### Enables you to easily extend your deep neural network with predictive coding dynamics.
+Link to the preprint: https://arxiv.org/abs/2106.02749
 
 # Installation
 
