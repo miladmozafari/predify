@@ -7,10 +7,10 @@ Link to the preprint: https://arxiv.org/abs/2106.02749
 To setup this package, you can install Anaconda or Miniconda
 ```
 # Clone the repository
-git clone https://www.github.com/predify
+git clone https://github.com/miladmozafari/predify
 
 # Create a new conda environment
-conda create -n predifyproject python==3.7
+conda create -n predifyproject python=3
 conda activate predifyproject
 
 # Install all the dependencies
