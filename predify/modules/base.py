@@ -126,13 +126,14 @@ class PCoder(Predictor):
                 self.rep.requires_grad = True 
         
             self.prd = self.pmodule(self.rep)
-            loss     = nn.functional.mse_loss(self.prd, target)
-            self.grd = torch.autograd.grad(loss, self.rep, retain_graph=True)[0]
+            self.prediction_error =  nn.functional.mse_loss(self.prd, target)
+            self.grd = torch.autograd.grad(self.prediction_error, self.rep, retain_graph=True)[0]
             
             if not build_graph:
                 self.prd = self.prd.detach()
                 self.grd = self.grd.detach()
                 self.rep = self.rep.detach()
+                self.prediction_error = self.prediction_error.detach()
         return self.rep, self.prd
 
     def reset(self):
@@ -256,12 +257,13 @@ class PCoderN(PCoder):
                 self.rep.requires_grad = True 
         
             self.prd = self.pmodule(self.rep)
-            loss     = nn.functional.mse_loss(self.prd, target)
-            self.grd = torch.autograd.grad(loss, self.rep, retain_graph=True)[0]
+            self.prediction_error  = nn.functional.mse_loss(self.prd, target)
+            self.grd = torch.autograd.grad(self.prediction_error, self.rep, retain_graph=True)[0]
             
             if not build_graph:
                 self.prd = self.prd.detach()
                 self.grd = self.grd.detach()
                 self.rep = self.rep.detach()
+                self.prediction_error = self.prediction_error.detach()
 
         return self.rep, self.prd
