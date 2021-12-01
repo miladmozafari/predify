@@ -133,6 +133,7 @@ class PCoder(Predictor):
                 self.prd = self.prd.detach()
                 self.grd = self.grd.detach()
                 self.rep = self.rep.detach()
+                self.prediction_error = self.prediction_error.detach()
         return self.rep, self.prd
 
     def reset(self):
@@ -263,5 +264,6 @@ class PCoderN(PCoder):
                 self.prd = self.prd.detach()
                 self.grd = self.grd.detach()
                 self.rep = self.rep.detach()
+                self.prediction_error = self.prediction_error.detach()
 
         return self.rep, self.prd
