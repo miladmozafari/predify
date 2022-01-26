@@ -97,7 +97,7 @@ def parse_toml(config_file):
     if not isinstance(input_size, list) or len(input_size) <= 2 or len(input_size) >= 5:
         raise Exception("Config File Error! 'input_size' should be defined as a list of [channels, height, width] for 2D inputs or [channels, depth, height, width] for 3D inputs.")
     if len(input_size) == 4:
-        warnings.warn("Input dimension is set to 3D since the input size is defined as list of length 4: [channels, depth, height, width]. If you want to use 2D inputs, please specify it as [channels, height, width]")
+        warnings.warn("Input dimension is set to 3D since the input size is defined as list of length 4: [channels, depth, height, width]. If you want to use 2D inputs, please specify it as [channels, height, width]", stacklevel=2)
     input_size = tuple(input_size)
 
     pcoders = config.get("pcoders", None)
@@ -117,11 +117,11 @@ def parse_toml(config_file):
 
         predictor = pc.get("predictor", None)
         if predictor is None:
-            warnings.warn(f"'predictor' is not defined for PCoder number {pc_idx}. A default module will be inferred based on the other PCoders.")
+            warnings.warn(f"'predictor' is not defined for PCoder number {pc_idx}. A default module will be inferred based on the other PCoders.", stacklevel=2)
         pmodules.append(predictor)
         
         if "hyperparameters" not in pc:
-            warnings.warn(f"'hyperparameters' is not defined for PCoder number {pc_idx}. Default values of feedforward=0.3, feedback=0.3, pc=0.01 will be set.")
+            warnings.warn(f"'hyperparameters' is not defined for PCoder number {pc_idx}. Default values of feedforward=0.3, feedback=0.3, pc=0.01 will be set.", stacklevel=2)
         hps = pc.get("hyperparameters", {"feedforward":0.3, "feedback":0.3, "pc":0.01})
         if not ("feedforward" in hps and "feedback" in hps and "pc" in hps):
             raise Exception(f"Config File Error! 'hyperparameters' for PCoder number {pc_idx + 1} should be a disctionary that contains 'feedforward', 'feedback', 'pc' as the keys.")
@@ -134,15 +134,15 @@ def parse_toml(config_file):
 
     gscale = config.get("gradient_scaling", None)
     if gscale is None:
-        warnings.warn(f"'gradient_scaling' is not defined. It will be set to False by default.")
+        warnings.warn(f"'gradient_scaling' is not defined. It will be set to False by default.", stacklevel=2)
         gscale = False
 
     same_hp = config.get("shared_hyperparameters", None)
     if same_hp is None:
-        warnings.warn(f"'shared_hyperparameters' is not defined. It will be set to False by default.")
+        warnings.warn(f"'shared_hyperparameters' is not defined. It will be set to False by default.", stacklevel=2)
         same_hp = False
     if same_hp is True:
-        warnings.warn(f"'shared_hyperparameters' is True. It will overwrite the values defined for each PCoder. It uses the default value or the values provided for the first PCoder.")
+        warnings.warn(f"'shared_hyperparameters' is True. It will overwrite the values defined for each PCoder. It uses the default value or the values provided for the first PCoder.", stacklevel=2)
 
     return name, layers, pmodules, hyperparams, p_imports, input_size, gscale, same_hp
         
