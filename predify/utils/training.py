@@ -87,7 +87,7 @@ def eval_pcoders(net: torch.nn.Module, loss_function: Callable, epoch: int, eval
         final_loss[i] /= len(eval_loader)
         loss_sum += final_loss[i]
         if writer is not None:
-            writer.add_scalar(f"MSE Test/PCoder{i+1}", final_loss[i], epoch-1)
+            writer.add_scalar(f"MSE Eval/PCoder{i+1}", final_loss[i], epoch-1)
             
             
     print('Training Epoch: {epoch} [{evaluated_samples}/{total_samples}]\tLoss: {:0.4f}'.format(
@@ -97,4 +97,4 @@ def eval_pcoders(net: torch.nn.Module, loss_function: Callable, epoch: int, eval
         total_samples=len(eval_loader.dataset)
     ))
     if writer is not None:
-        writer.add_scalar(f"MSE Test/Sum", loss_sum, epoch-1)
+        writer.add_scalar(f"MSE Eval/Sum", loss_sum, epoch-1)
