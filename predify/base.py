@@ -32,12 +32,12 @@ def pcoder_str(pcoder_idx, module_name, src_shape, target_shape, has_feedback, s
         if is_3d:
             if src_shape[-3:] != target_shape[-3:]:
                 scale_factor = (target_shape[-3]/src_shape[-3], target_shape[-2]/src_shape[-2], target_shape[-1]/src_shape[-1])
-                upsample = f"Upsample(scale_factor={scale_factor}, mode='bilinear'),"
+                upsample = f"Upsample(scale_factor={scale_factor}, mode='bilinear', align_corners=False),"
             convt = f"ConvTranspose3d({src_shape[-4]}, {target_shape[-4]}, kernel_size=3, stride=1, padding=1)"
         else:
             if src_shape[-2:] != target_shape[-2:]:
                 scale_factor = (target_shape[-2]/src_shape[-2], target_shape[-1]/src_shape[-1])
-                upsample = f"Upsample(scale_factor={scale_factor}, mode='bilinear'),"
+                upsample = f"Upsample(scale_factor={scale_factor}, mode='bilinear', align_corners=False),"
             convt = f"ConvTranspose2d({src_shape[-3]}, {target_shape[-3]}, kernel_size=3, stride=1, padding=1)"
         pmodule = f"pmodule = Sequential({upsample}{convt})"
     else:
