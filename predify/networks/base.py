@@ -1,3 +1,4 @@
+from typing import Sequence
 import torch
 import torch.nn as nn
 import copy
@@ -148,6 +149,18 @@ class PNetSameHP(nn.Module):
             self.fb_part.copy_(-torch.log((1-self.fbm)/self.fbm))
             fmm = 1-self.ffm-self.fbm
             self.mem_part.copy_(-torch.log((1-fmm)/fmm))
+
+    def set_hyperparameters(self, hps: dict):
+        r"""
+        Sets the values of hyperparameters.
+
+        Args:
+            hps (dict): a dictionary in the form of `{'ffm' : float, 'fbm': float, 'erm': float}`
+        """
+        self.ffm = torch.tensor(hps['ffm'], dtype=torch.float)
+        self.ffb = torch.tensor(hps['fbm'], dtype=torch.float)
+        self.erm = torch.tensor(hps['erm'], dtype=torch.float)
+        self.compute_hp_parameters_from_values()
 
 
 class PNetSeparateHP(nn.Module):
@@ -343,4 +356,19 @@ class PNetSeparateHP(nn.Module):
                 ff_part.copy_(-torch.log((1-ffm)/ffm))
                 fb_part.copy_(-torch.log((1-fbm)/fbm))
                 mem_part.copy_(-torch.log((1-fmm)/fmm))
+
+    def set_hyperparameters(self, hps: Sequence):
+        r"""
+        Sets the values of hyperparameters.
+
+        Args:
+            hps (Sequence: dict): a sequence of dictionaries in the form of `{'ffm' : float, 'fbm': float, 'erm': float}`
+            defining hyperparameter values of each PCoder
+        """
+        for i in range(self.number_of_pcoders):
+            setattr(self, f"ffm{i+1}", torch.tensor(hps[i]['ffm'], dtype=torch.float))
+            setattr(self, f"fbm{i+1}", torch.tensor(hps[i]['fbm'], dtype=torch.float))
+            setattr(self, f"erm{i+1}", torch.tensor(hps[i]['erm'], dtype=torch.float))
+
+        self.compute_hp_parameters_from_values()
 

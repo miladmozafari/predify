@@ -250,7 +250,7 @@ class PCoderN(PCoder):
 
         if self.C_sqrt == -1:
             self.compute_C_sqrt(target)
-            print(self.C_sqrt * self.C_sqrt)
+            # print(self.C_sqrt * self.C_sqrt)
 
         with torch.enable_grad():
             if not self.rep.requires_grad:
