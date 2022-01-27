@@ -156,7 +156,7 @@ def predify(net, config_file, output_address=None):
         output_address: address of the output script file. If `None`, the name of the network will be used.
     """
     config = parse_toml(config_file)
-    predify_core(net, *config, output_address)
+    predify_core(net.to('cpu'), *config, output_address)
 
 def predify_core(net, name, layers, pmodules, hps, p_imports, input_size, gscale, same_hp, output_address):
     net.eval()
