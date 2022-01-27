@@ -15,6 +15,7 @@ def get_requirements():
 
     
 setuptools.setup(
+    name="predify",
     version=version,
     author="miladmozafari",
     author_email="",
