@@ -15,7 +15,6 @@ def get_requirements():
 
     
 setuptools.setup(
-    name="predify-miladmozafari", # Replace with your own username
     version=version,
     author="miladmozafari",
     author_email="",
