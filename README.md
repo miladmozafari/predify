@@ -2,7 +2,7 @@
 ### Enables you to easily extend your deep neural network with predictive coding dynamics.
 Link to the preprint: https://arxiv.org/abs/2106.02749
 
-Tutorial: [predify-demo.ipynb](https://github.com/miladmozafari/predify/blob/master/examples/predify_demo.ipynb) ([Run in Google Colab](https://colab.research.google.com/github/miladmozafari/predify/blob/master/examples/predify_demo.ipynb))
+Tutorial: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/miladmozafari/predify/blob/master/examples/predify_demo.ipynb)
 # Installation
 
 To setup this package, you can install Anaconda or Miniconda
